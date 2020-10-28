@@ -5,13 +5,13 @@
 
 ## Running the Main.hs
 ```
-runhaskell -i{*path*}/src Main.hs
+runhaskell -i{path}/src Main.hs
 ```
-Where *path* is the path to the local folder of this repository.
+Where **{path}** is the path to the local folder of this repository.
 
 ## Running a test file
 ```
-runhaskell -i{*path*}/src {*file*}/
+runhaskell -i{path}/src {file}
 ```
 
-Where *path* is the path to the local folder of this repository and *file* is the test file you want to run.
+Where **{path}** is the path to the local folder of this repository and **{file}** is the path to the test file you want to run.
