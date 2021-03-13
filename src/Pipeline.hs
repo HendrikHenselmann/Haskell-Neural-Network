@@ -22,10 +22,6 @@ import Data.Either
 
 import Text.Printf
 
--- for quick tests
-import ActivationFuncs
-import WeightInitializations
-
 ------------------------------------------------------------------------------------
 -- Pipeline:
 --            wrapping DNN with Input and Output Scaler
