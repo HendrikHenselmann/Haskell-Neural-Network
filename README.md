@@ -23,3 +23,6 @@ for f in ./tests/*.hs; do runhaskell -i./src $f; done
 ```
 
 Run the command above in the root directory of the project to execute all tests.
+
+## Important notes!
+* The are no learning episodes. Backpropagation takes a random observation (or batch of observations) at every backpropagation iteration. It's not going through the whole dataset. I think that this is okay if the number of learning steps is high enough.
