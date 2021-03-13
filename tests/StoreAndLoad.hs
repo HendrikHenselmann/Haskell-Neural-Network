@@ -22,10 +22,6 @@ seed = 128
 epsilon :: Double
 epsilon = 0.0001
 
--- A name of an app user data directory
-appDirectoryName :: String
-appDirectoryName = "Haskell_DNN_Test_Data"
-
 ------------------------------------------------------------------------------------
 -- test functions
 
