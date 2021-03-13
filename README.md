@@ -15,3 +15,11 @@ runhaskell -i{path}/src {file}
 ```
 
 Where **{path}** is the path to the local folder of this repository and **{file}** is the path to the test file you want to run. (Yep, there is no space between -i and the path.)
+
+## Running all tests
+
+```
+for f in ./tests/*.hs; do runhaskell -i./src $f; done
+```
+
+Run the command above in the root directory of the project to execute all tests.
