@@ -7,11 +7,11 @@
 ```
 runhaskell -i{path}/src Main.hs
 ```
-Where **{path}** is the path to the local folder of this repository.
+Where **{path}** is the path to the local folder of this repository. (Yep, there is no space between -i and the path.)
 
 ## Running a test file
 ```
 runhaskell -i{path}/src {file}
 ```
 
-Where **{path}** is the path to the local folder of this repository and **{file}** is the path to the test file you want to run.
+Where **{path}** is the path to the local folder of this repository and **{file}** is the path to the test file you want to run. (Yep, there is no space between -i and the path.)
