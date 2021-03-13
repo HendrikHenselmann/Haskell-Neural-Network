@@ -3,15 +3,13 @@
 import Matrix
 import PerformanceMetrics
 
+import TestAuxiliaries
+
 import Test.HUnit
 
 -- small constant
 epsilon :: Double
 epsilon = 0.00001
-
-------------------------------------------------------------------------------------
-equalityWithTolerance :: Double -> Double -> Double -> Bool
-equalityWithTolerance epsilon val1 val2 = (val1 - epsilon <= val2) && (val1 + epsilon >= val2)
 
 ------------------------------------------------------------------------------------
 -- Declaration of some test Matrices
