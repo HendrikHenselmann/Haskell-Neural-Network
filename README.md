@@ -24,6 +24,6 @@ for f in ./tests/*.hs; do runhaskell -i./src $f; done
 
 Run the command above in the root directory of the project to execute all tests.
 
-## Important notes!
+## Important notes / Clean Code violations / gathered experience
 * The are no learning episodes. Backpropagation takes a random observation (or batch of observations) at every backpropagation iteration. It's not going through the whole dataset. I think that this is okay if the number of learning steps is high enough.
 * I've not implemented Exceptions. In the case of failure, e.g. unexpected / inconsistent input, failure indicating output / output datastructures will be propagated through. For example the emptyMatrix, emptyDNN, emptyPipe are structures indicating failure. This is certainly not good practice, since debugging gets very difficult.
