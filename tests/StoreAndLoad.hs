@@ -22,6 +22,10 @@ seed = 128
 epsilon :: Double
 epsilon = 0.0001
 
+-- A name of an app user data directory
+appDirectoryName :: String
+appDirectoryName = "Haskell_DNN_Test_Data"
+
 ------------------------------------------------------------------------------------
 -- test functions
 
@@ -105,10 +109,10 @@ store_and_load_dnn_test = TestCase (do
     let initialLastLayersBiasWeights = biasWeights $ last $ layers initialDnn
 
     -- store network
-    storeDNN initialDnn "./data/Test/storeDNN_loadDNN_test.data" True
+    storeDNN initialDnn "./storeDNN_loadDNN_test.data" True
 
     -- load network
-    loadedDnn <- loadDNN "./data/Test/storeDNN_loadDNN_test.data"
+    loadedDnn <- loadDNN "./storeDNN_loadDNN_test.data"
 
     -- check network properties
     assertBool "layer type" (checkLayerTypes (layers initialDnn) (layers loadedDnn))
@@ -130,7 +134,7 @@ store_and_load_dnn_test = TestCase (do
     assertBool "output" (matsAreEqualWithTolerance epsilon initialOutput loadedDnnOutput) 
 
     -- delete test file of stored dnn
-    removeFile "./data/Test/storeDNN_loadDNN_test.data"
+    removeFile "./storeDNN_loadDNN_test.data"
     )
 
 store_and_load_pipe_test = TestCase (do
@@ -141,10 +145,10 @@ store_and_load_pipe_test = TestCase (do
     let initialPipe = initPipeline (Just standardization) initialDnn (Just softmax)
 
     -- store Pipeline
-    storePipe initialPipe "./data/Test/storePipe_loadPipe_test.data"
+    storePipe initialPipe "./storePipe_loadPipe_test.data"
 
     -- load Pipeline
-    loadedPipe <- loadPipe"./data/Test/storePipe_loadPipe_test.data"
+    loadedPipe <- loadPipe "./storePipe_loadPipe_test.data"
     let loadedDnn = getDNN loadedPipe
 
     -- check input and output scalers
@@ -171,7 +175,7 @@ store_and_load_pipe_test = TestCase (do
     assertBool "output" (matsAreEqualWithTolerance epsilon initialOutput loadedDnnOutput) 
 
     -- delete test file of stored dnn
-    removeFile "./data/Test/storePipe_loadPipe_test.data"
+    removeFile "./storePipe_loadPipe_test.data"
     )
 
 ------------------------------------------------------------------------------------
