@@ -1,4 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
+module StoreAndLoad_Tests (tests) where
 
 import DNN
 import Layer
@@ -177,9 +178,6 @@ store_and_load_pipe_test = TestCase (do
 ------------------------------------------------------------------------------------
 -- Name tests and group them together
 
-tests = TestList [TestLabel "store and load dnn test" store_and_load_dnn_test, TestLabel "store and load pipe test" store_and_load_pipe_test]
+tests = [TestLabel "store and load dnn test" store_and_load_dnn_test, TestLabel "store and load pipe test" store_and_load_pipe_test]
 
 ------------------------------------------------------------------------------------
--- Execute tests
-main :: IO Counts
-main = runTestTT tests

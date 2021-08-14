@@ -1,0 +1,90 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           Haskell-Neural-Network
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/Hendrik128/Haskell-Neural-Network#readme>
+homepage:       https://github.com/Hendrik128/Haskell-Neural-Network#readme
+bug-reports:    https://github.com/Hendrik128/Haskell-Neural-Network/issues
+author:         Hendrik Henselmann
+maintainer:     hendrikh@freenet.com
+copyright:      2021 Hendrik Henselmann
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/Hendrik128/Haskell-Neural-Network
+
+library
+  exposed-modules:
+      ActivationFuncs
+      DNN
+      Layer
+      LossFuncs
+      Matrix
+      OneHotEncoding
+      PerformanceMetrics
+      Pipeline
+      RandomMatrixBatch
+      ReadData
+      Scaler
+      TestAuxiliaries
+      WeightInitializations
+  other-modules:
+      Paths_Haskell_Neural_Network
+  hs-source-dirs:
+      src
+  build-depends:
+      HUnit >=1.6.0.0
+    , base >=4.7 && <5
+    , directory
+    , random
+  default-language: Haskell2010
+
+executable Haskell-Neural-Network-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_Haskell_Neural_Network
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HUnit >=1.6.0.0
+    , Haskell-Neural-Network
+    , base >=4.7 && <5
+    , directory
+    , random
+  default-language: Haskell2010
+
+test-suite Haskell-Neural-Network-test
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      BackPropagation_Tests
+      Feedforward_Tests
+      LossFuncs_Tests
+      Matrix_Tests
+      OneHotEncoding_Tests
+      PerformanceMetrics_Tests
+      Scaler_Tests
+      StoreAndLoad_Tests
+      WeightInitialization_Tests
+      Paths_Haskell_Neural_Network
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HUnit >=1.6.0.0
+    , Haskell-Neural-Network
+    , base >=4.7 && <5
+    , directory
+    , random
+  default-language: Haskell2010

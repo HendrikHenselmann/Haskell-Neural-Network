@@ -87,7 +87,7 @@ backpropMBGD learningRate layer rawInput dLoss_dOutput = select (layerType layer
         select DenseLayer = backpropDenseLayerMBGD learningRate layer rawInput dLoss_dOutput
 
 -- Backpropagation of a single DenseLayer using mini batch gradient descent
--- returns derived loss wrt. current output and the (weight) updated Layer
+-- returns derived loss wrt. current output and the updated Layer (updated weights)
 -- rawInput: is the output of previouse layer, which is basically
 --           the derivative of current layers input wrt. current layers weights
 backpropDenseLayerMBGD :: Double -> Layer -> Matrix -> Matrix -> (Matrix, Layer)

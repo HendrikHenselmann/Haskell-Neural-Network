@@ -1,4 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
+module OneHotEncoding_Tests (tests) where
 
 import Matrix
 import OneHotEncoding
@@ -48,9 +49,6 @@ predictionToLabel_tests = TestCase (do
 ------------------------------------------------------------------------------------
 -- Name tests and group them together
 
-tests = TestList [TestLabel "oneHotEncoding" oneHotEncoding_tests, TestLabel "prediction to label" predictionToLabel_tests]
+tests = [TestLabel "oneHotEncoding" oneHotEncoding_tests, TestLabel "prediction to label" predictionToLabel_tests]
 
 ------------------------------------------------------------------------------------
--- Execute tests
-main :: IO Counts
-main = runTestTT tests

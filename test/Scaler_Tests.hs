@@ -1,4 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
+module Scaler_Tests (tests) where
 
 import Scaler
 import Matrix
@@ -60,9 +61,6 @@ normalization_tests = TestCase (do
 ------------------------------------------------------------------------------------
 -- Name tests and group them together
 
-tests = TestList [TestLabel "normalization" normalization_tests]
+tests = [TestLabel "normalization" normalization_tests]
 
 ------------------------------------------------------------------------------------
--- Execute tests
-main :: IO Counts
-main = runTestTT tests

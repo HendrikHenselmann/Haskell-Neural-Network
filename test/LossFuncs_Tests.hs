@@ -1,4 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
+module LossFuncs_Tests (tests) where
 
 import Matrix
 import LossFuncs
@@ -37,9 +38,6 @@ crossEntropyAfterSoftmax_tests = TestCase (do
 ------------------------------------------------------------------------------------
 -- Name tests and group them together
 
-tests = TestList [TestLabel "crossEntropy After Softmax" crossEntropyAfterSoftmax_tests]
+tests = [TestLabel "crossEntropy After Softmax" crossEntropyAfterSoftmax_tests]
 
 ------------------------------------------------------------------------------------
--- Execute tests
-main :: IO Counts
-main = runTestTT tests

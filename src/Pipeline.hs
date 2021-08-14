@@ -197,8 +197,8 @@ printPipe pipe
             aux :: [Layer] -> Int -> IO ()
             aux [] _ = printf "\n"
             aux (layer:layers) i = do
-            printf "\tLayer %d: " i
-            printLayerInfo layer
-            aux layers (i+1)
+                printf "\tLayer %d: " i
+                printLayerInfo layer
+                aux layers (i+1)
 
 ------------------------------------------------------------------------------------

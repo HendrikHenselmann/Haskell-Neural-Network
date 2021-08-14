@@ -1,5 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
-module PerformanceMetrics (accuracy) where
+module PerformanceMetrics (accuracy, meanAbsoluteError) where
 
 import Matrix
 import OneHotEncoding
@@ -60,5 +60,15 @@ rightPredictions (a:as) (p:ps) acc = rightPredictions as ps updatedAcc
 
 -- ------------------------------------------------------------------------------------
 -- Mean absolute error (MAE)
+meanAbsoluteError :: Matrix -> Matrix -> Matrix
+meanAbsoluteError actual prediction
+    | (matsAreEqual actual emptyMatrix) = emptyMatrix
+    | ( (n actual) /= (n prediction) ) = emptyMatrix
+    | ( (m actual) /= (m prediction) ) = emptyMatrix
+    | otherwise = mse
+    where
+        absoluteErrors = applyToMatElementWise abs (matAdd actual (matScalarMult (-1.0) prediction))
+        accumulateAbsoluteErrors = applyToMatColWise (+) absoluteErrors
+        mse = matScalarMult (1.0 / (fromIntegral (n actual))) accumulateAbsoluteErrors
 
 -- ------------------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 -- Copyright [2021] <Hendrik Henselmann>
+module WeightInitialization_Tests (tests) where
 
 import Matrix
 import WeightInitializations
@@ -25,10 +26,10 @@ simpleWeightInit_tests = TestCase (do
     let weightMatrix = (inputWeightInit simpleWeightInit) seed 3 4
     let biasMatrix = (biasWeightInit simpleWeightInit) seed 4
     -- dimensionality tests
-    assertBool "First weight dimension is does not fit!" ((n weightMatrix) == 3)
-    assertBool "Second weight dimension is does not fit!" ((m weightMatrix) == 4)
-    assertBool "First bias dimension is does not fit!" ((n biasMatrix) == 1)
-    assertBool "Second bias dimension is does not fit!" ((m biasMatrix) == 4)
+    assertBool "First weight dimension does not fit!" ((n weightMatrix) == 3)
+    assertBool "Second weight dimension does not fit!" ((m weightMatrix) == 4)
+    assertBool "First bias dimension does not fit!" ((n biasMatrix) == 1)
+    assertBool "Second bias dimension does not fit!" ((m biasMatrix) == 4)
     -- matrix size test
     assertBool "Actual weight matrix size does not fit!" ((length $ array weightMatrix) == 12)
     assertBool "Actual bias matrix size does not fit!" ((length $ array biasMatrix) == 4)
@@ -42,10 +43,10 @@ xavierWeightInit_tests = TestCase (do
     let weightMatrix = (inputWeightInit xavierWeightInit) seed 3 4
     let biasMatrix = (biasWeightInit xavierWeightInit) seed 4
     -- dimensionality tests
-    assertBool "First weight dimension is does not fit!" ((n weightMatrix) == 3)
-    assertBool "Second weight dimension is does not fit!" ((m weightMatrix) == 4)
-    assertBool "First bias dimension is does not fit!" ((n biasMatrix) == 1)
-    assertBool "Second bias dimension is does not fit!" ((m biasMatrix) == 4)
+    assertBool "First weight dimension does not fit!" ((n weightMatrix) == 3)
+    assertBool "Second weight dimension does not fit!" ((m weightMatrix) == 4)
+    assertBool "First bias dimension does not fit!" ((n biasMatrix) == 1)
+    assertBool "Second bias dimension does not fit!" ((m biasMatrix) == 4)
     -- matrix size test
     assertBool "Actual weight matrix size does not fit!" ((length $ array weightMatrix) == 12)
     assertBool "Actual bias matrix size does not fit!" ((length $ array biasMatrix) == 4)
@@ -57,10 +58,10 @@ kaiminWeightInit_tests = TestCase (do
     let weightMatrix = (inputWeightInit kaiminWeightInit) seed 3 4
     let biasMatrix = (biasWeightInit kaiminWeightInit) seed 4
     -- dimensionality tests
-    assertBool "First weight dimension is does not fit!" ((n weightMatrix) == 3)
-    assertBool "Second weight dimension is does not fit!" ((m weightMatrix) == 4)
-    assertBool "First bias dimension is does not fit!" ((n biasMatrix) == 1)
-    assertBool "Second bias dimension is does not fit!" ((m biasMatrix) == 4)
+    assertBool "First weight dimension does not fit!" ((n weightMatrix) == 3)
+    assertBool "Second weight dimension does not fit!" ((m weightMatrix) == 4)
+    assertBool "First bias dimension does not fit!" ((n biasMatrix) == 1)
+    assertBool "Second bias dimension does not fit!" ((m biasMatrix) == 4)
     -- matrix size test
     assertBool "Actual weight matrix size does not fit!" ((length $ array weightMatrix) == 12)
     assertBool "Actual bias matrix size does not fit!" ((length $ array biasMatrix) == 4)
@@ -71,9 +72,6 @@ kaiminWeightInit_tests = TestCase (do
 ------------------------------------------------------------------------------------
 -- Name tests and group them together
 
-tests = TestList [TestLabel "simpleWeightInit" simpleWeightInit_tests, TestLabel "xavierWeightInit" xavierWeightInit_tests, TestLabel "kaiminWeightInit" kaiminWeightInit_tests]
+tests = [TestLabel "simpleWeightInit" simpleWeightInit_tests, TestLabel "xavierWeightInit" xavierWeightInit_tests, TestLabel "kaiminWeightInit" kaiminWeightInit_tests]
 
 ------------------------------------------------------------------------------------
--- Execute tests
-main :: IO Counts
-main = runTestTT tests

@@ -1,4 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
+module Feedforward_Tests (tests) where
 
 import DNN
 import Layer
@@ -114,9 +115,6 @@ dnn4_tests = TestCase (do
 ------------------------------------------------------------------------------------
 -- Name tests and group them together
 
-tests = TestList [TestLabel "DNN 1" dnn1_tests, TestLabel "DNN 2" dnn2_tests, TestLabel "DNN 3" dnn3_tests, TestLabel "DNN 4" dnn4_tests]
+tests = [TestLabel "DNN 1" dnn1_tests, TestLabel "DNN 2" dnn2_tests, TestLabel "DNN 3" dnn3_tests, TestLabel "DNN 4" dnn4_tests]
 
 ------------------------------------------------------------------------------------
--- Execute tests
-main :: IO Counts
-main = runTestTT tests

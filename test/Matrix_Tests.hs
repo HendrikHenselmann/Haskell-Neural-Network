@@ -1,4 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
+module Matrix_Tests (tests) where
 
 import Matrix
 import RandomMatrixBatch
@@ -218,16 +219,13 @@ randomUnique_tests = TestCase (do
 
 ------------------------------------------------------------------------------------
 -- Name tests and group them together
-tests = TestList [TestLabel "general" general_tests,
-                  TestLabel "matAdd" matAdd_tests,
-                  TestLabel "matMul" matMul_tests,
-                  TestLabel "applyToMat" applyToMat_tests,
-                  TestLabel "chooseBatch" chooseBatch_tests,
-                  TestLabel "cut1row" cut1row_tests,
-                  TestLabel "chooseBatchOf2Matrices" chooseBatchOf2Matrices_tests,
-                  TestLabel "randomUnique" randomUnique_tests]
+tests = [TestLabel "general" general_tests,
+        TestLabel "matAdd" matAdd_tests,
+        TestLabel "matMul" matMul_tests,
+        TestLabel "applyToMat" applyToMat_tests,
+        TestLabel "chooseBatch" chooseBatch_tests,
+        TestLabel "cut1row" cut1row_tests,
+        TestLabel "chooseBatchOf2Matrices" chooseBatchOf2Matrices_tests,
+        TestLabel "randomUnique" randomUnique_tests]
 
 ------------------------------------------------------------------------------------
--- Execute tests
-main :: IO Counts
-main = runTestTT tests
