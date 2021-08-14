@@ -1,28 +1,30 @@
 # Neural Network written in Haskell
- This is an implementation of a Neural Network written in Haskell. I wrote it only to deepen my understandings of Neural Networks. It is not meant to be used for real world application.
+ This is an implementation of a Neural Network written in Haskell. I wrote it solely to deepen my understanding of Neural Networks. It is not meant to be used for real world applications.
 
-## Introduction
+## Setup
+You need the Haskell tool **stack** to setup, build and execute this project.
+Execute the following steps:
+<ol>
+<li> Download this project folder from github.</li>
+<li> Open the command prompt and navigate into the downloaded project directory.</li>
+<li> Use the following commands to setup and build the project using <strong>stack</strong>:
+ 
+         stack setup
+         stack build
+ </li>
+</ol>
 
-## Running the Main.hs
+## Running the Main file (Main.hs)
+Use the following command to execute the Main file in the "./app/" subdirectory, after you have completed the setup steps above.
 ```
-runhaskell -i{path}/src Main.hs
-```
-Where **{path}** is the path to the local folder of this repository. (Yep, there is no space between -i and the path.)
-
-## Running a test file
-```
-runhaskell -i{path}/src {file}
-```
-
-Where **{path}** is the path to the local folder of this repository and **{file}** is the path to the test file you want to run. (Yep, there is no space between -i and the path.)
-
-## Running all tests
-
-```
-for f in ./tests/*.hs; do runhaskell -i./src $f; done
+stack exec Haskell-Neural-Network-exe
 ```
 
-Run the command above in the root directory of the project to execute all tests.
+## Running the tests
+Use the following command to execute all the unit tests in the "./test/" subdirectory, after you have completed the setup steps above.
+```
+stack test
+```
 
 <br/><br/>
 
