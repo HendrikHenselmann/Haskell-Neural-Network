@@ -1,5 +1,5 @@
 -- Copyright [2020] <Hendrik Henselmann>
-module RandomMatrixBatch (chooseBatch, chooseBatchOf2Matrices, randomUnique, cut_) where
+module RandomMatrixBatch (chooseBatch, chooseBatchOf2Matrices, chooseRandomRowOf2Matrices, randomUnique, cut_) where
 
 import Matrix
 
@@ -22,7 +22,7 @@ chooseBatch seed mat batchSize
 
 -- Randomly choose a batch of given batch size out of two matrices
 -- bad if batch size is almost the size of possible chosen rows (n)
--- but fairly good if batchSize >> (n mat)
+-- but fairly good if batchSize << (n mat)
 chooseBatchOf2Matrices :: Int -> Matrix -> Matrix -> Int -> (Matrix, Matrix)
 chooseBatchOf2Matrices seed mat1 mat2 batchSize
     | (n mat1 /= n mat2) = (emptyMatrix, emptyMatrix)
@@ -34,6 +34,10 @@ chooseBatchOf2Matrices seed mat1 mat2 batchSize
         randomIndices = randomUnique seed ((n mat1)-1) batchSize
         randomBatch1 = cut_ (array mat1) (m mat1) randomIndices
         randomBatch2 = cut_ (array mat2) (m mat2) randomIndices
+
+-- Randomly choose a row out of two matrices
+chooseRandomRowOf2Matrices :: Int -> Matrix -> Matrix -> (Matrix, Matrix)
+chooseRandomRowOf2Matrices seed mat1 mat2 = chooseBatchOf2Matrices seed mat1 mat2 1
 
 -- return matrix array specified by input matrix array and given array of chosen row numbers
 -- Important Note: row indices in array have to be unique and sorted in ascending order!

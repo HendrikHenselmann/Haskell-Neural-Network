@@ -81,10 +81,9 @@ createPipeOutput pipe input
 -- returning training loss vector and Pipeline with trained DNN
 
 -- this function is basically just for error handling and (re-)structuring input and output
-trainPipe :: Int -> Int -> Int -> Double -> LossFunc -> Pipeline -> Matrix -> Matrix -> (Matrix, Pipeline)
-trainPipe seed trainingSteps batchSize learningRate lossFunc pipe inputMat desiredOutput
+trainPipe :: Int -> Int -> Double -> LossFunc -> Pipeline -> Matrix -> Matrix -> (Matrix, Pipeline)
+trainPipe seed trainingSteps learningRate lossFunc pipe inputMat desiredOutput
     | (null (layers dnn)) = (emptyMatrix, emptyPipe)
-    | (batchSize > (n inputMat)) = (emptyMatrix, emptyPipe)
     | (matsAreEqual inputMat emptyMatrix) = (emptyMatrix, emptyPipe)
     | (matsAreEqual desiredOutput emptyMatrix) = (emptyMatrix, emptyPipe)
     | (trainingSteps == 0) = (emptyMatrix, pipe)
@@ -109,7 +108,7 @@ trainPipe seed trainingSteps batchSize learningRate lossFunc pipe inputMat desir
             | otherwise = lossFunc
 
         -- performing the training steps
-        lossAndDnn = trainAux1_ seed trainingSteps batchSize learningRate maybeLossFuncAfterScaling dnn maybeScaledInputMat desiredOutput []
+        lossAndDnn = trainAux1_ seed trainingSteps learningRate maybeLossFuncAfterScaling dnn maybeScaledInputMat desiredOutput []
 
         -- perform a last prediction
         updatedDnn = snd lossAndDnn

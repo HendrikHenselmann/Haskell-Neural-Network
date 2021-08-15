@@ -106,54 +106,51 @@ createOutput dnn input
 -- returning training loss vector and trained DNN
 
 -- this function is basically just for error handling and (re-)structuring input and output
-train :: Int -> Int -> Int -> Double -> LossFunc -> DNN -> Matrix -> Matrix -> (Matrix, DNN)
-train seed trainingSteps batchSize learningRate lossFunc dnn inputMat desiredOutput
+train :: Int -> Int -> Double -> LossFunc -> DNN -> Matrix -> Matrix -> (Matrix, DNN)
+train seed trainingSteps learningRate lossFunc dnn inputMat desiredOutput
     | (null (layers dnn)) = (emptyMatrix, emptyDNN)
-    | (batchSize > (n inputMat)) = (emptyMatrix, emptyDNN)
     | (matsAreEqual inputMat emptyMatrix) = (emptyMatrix, emptyDNN)
     | (matsAreEqual desiredOutput emptyMatrix) = (emptyMatrix, emptyDNN)
     | (trainingSteps == 0) = (emptyMatrix, dnn)
     | otherwise = (lossMat, updatedDnn)
     where
         -- performing the training steps
-        lossAndDnn = trainAux1_ seed trainingSteps batchSize learningRate lossFunc dnn inputMat desiredOutput []
+        lossAndDnn = trainAux1_ seed trainingSteps learningRate lossFunc dnn inputMat desiredOutput []
         -- perform a last prediction
         updatedDnn = snd lossAndDnn
         finalPrediction = createOutput updatedDnn inputMat
         -- calculate final loss
         finalLoss = (function lossFunc) desiredOutput finalPrediction
-        meanFinalLoss = (sum (array finalLoss)) / (fromIntegral (n inputMat))
-        reversedLossHistory = meanFinalLoss:(fst lossAndDnn)
+        reversedLossHistory = (head $ array finalLoss):(fst lossAndDnn)
         lossHistory = reverse reversedLossHistory
         lossMat = Matrix 1 (trainingSteps+1) lossHistory
 
--- the outer loop ("training steps"): randomly choosing batch, calculating error and updating Network accordingly (Backpropagation)
-trainAux1_ :: Int -> Int -> Int -> Double -> LossFunc -> DNN -> Matrix -> Matrix -> [Double] -> ([Double], DNN)
-trainAux1_ seed trainingSteps batchSize learningRate lossFunc dnn inputMat desiredOutput reversedLossHistory
+-- the outer loop ("training steps"): randomly choosing an input/output sample, calculating error and updating Network accordingly (Backpropagation)
+trainAux1_ :: Int -> Int -> Double -> LossFunc -> DNN -> Matrix -> Matrix -> [Double] -> ([Double], DNN)
+trainAux1_ seed trainingSteps learningRate lossFunc dnn inputMat desiredOutput reversedLossHistory
     | (trainingSteps == 0) = (reversedLossHistory, dnn)
-    | otherwise = trainAux1_ nextSeed (trainingSteps-1) batchSize learningRate lossFunc updatedDnn inputMat desiredOutput updatedReversedLossHistory
+    | otherwise = trainAux1_ nextSeed (trainingSteps-1) learningRate lossFunc updatedDnn inputMat desiredOutput updatedReversedLossHistory
     where
-        -- generate new seed so that new batches will be produced every time
+        -- generate new seed so that a new sample is chosen in every iteration
         nextSeed = fst $ uniform $ mkStdGen seed
 
-        -- the following procedure: choose random batches -> feedforward -> calc loss and loss derivative -> backprop
-        -- choose random batches
-        randomBatch = chooseBatchOf2Matrices nextSeed inputMat desiredOutput batchSize
-        inputMatBatch = fst randomBatch
-        desiredOutputBatch = snd randomBatch
+        -- the following procedure: choose random input/output pair -> feedforward -> calc loss and loss derivative -> backprop
+        -- choose random input/output pair
+        randomInputDesiredOutput = chooseRandomRowOf2Matrices nextSeed inputMat desiredOutput
+        randomInputRow = fst randomInputDesiredOutput
+        randomDesiredOutputRow = snd randomInputDesiredOutput
         -- feedforward
-        dnnAfterFeedForward = evaluate dnn inputMatBatch
+        dnnAfterFeedForward = evaluate dnn randomInputRow
         dnnPrediction = getResult dnnAfterFeedForward
         -- calc loss
-        loss = (function lossFunc) desiredOutputBatch dnnPrediction
-        meanLoss = (sum (array loss)) / (fromIntegral batchSize)
+        loss = (function lossFunc) randomDesiredOutputRow dnnPrediction
         -- calc loss derivative
-        dLoss_dPrevOutput = (derivative lossFunc) desiredOutputBatch dnnPrediction
+        dLoss_dPrevOutput = (derivative lossFunc) randomDesiredOutputRow dnnPrediction
         -- backprop
         reversedLayers = reverse $ layers dnnAfterFeedForward
         updatedReversedLayers = trainAux2_ learningRate reversedLayers dLoss_dPrevOutput
         updatedDnn = DNN (reverse updatedReversedLayers)
-        updatedReversedLossHistory = meanLoss:reversedLossHistory
+        updatedReversedLossHistory = (head $ array loss):reversedLossHistory
 
 -- the inner loop: backpropagating error through the whole network / all layers
 trainAux2_ :: Double -> [Layer] -> Matrix -> [Layer]
@@ -161,7 +158,7 @@ trainAux2_ _ [] _ = []
 trainAux2_ learningRate (layer:previousLayer:layers) dLoss_dOutput = updatedLayer:updatedRest
     where
         rawInput = output previousLayer
-        backpropResult = backpropMBGD learningRate layer rawInput dLoss_dOutput
+        backpropResult = backpropSGD learningRate layer rawInput dLoss_dOutput
         updatedLayer = snd backpropResult
         dLoss_dPreOutput = fst backpropResult
         updatedRest = trainAux2_ learningRate (previousLayer:layers) dLoss_dPreOutput

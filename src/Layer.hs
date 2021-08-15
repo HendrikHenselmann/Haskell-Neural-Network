@@ -5,7 +5,7 @@ module Layer (LayerType(..),
               decodeLayerType,
               Layer(..),
               feedForward,
-              backpropMBGD,
+              backpropSGD,
               printLayerInfo) where
 
 import Matrix
@@ -31,7 +31,6 @@ sameLayerType DenseLayer DenseLayer = True
 sameLayerType _ _ = False
 
 ------------------------------------------------------------------------------------
-
 -- Dense Layer
 data Layer = Layer {              -- shape example for DenseLayer:
     layerType :: LayerType,
@@ -42,6 +41,7 @@ data Layer = Layer {              -- shape example for DenseLayer:
     input :: Matrix,              -- sum of weighted inputs + bias  | (n x m_i)
     output :: Matrix              -- activation function applied on input  | (n x m_i)
 }
+
 ------------------------------------------------------------------------------------
 -- encoding and decoding of LayerType (for load and store of dnn / pipe)
 -- not very efficient, but thats ok since they will not be used very often
@@ -79,22 +79,20 @@ feedForwardDense layer rawInput = Layer DenseLayer m_i activation weights bias i
 ------------------------------------------------------------------------------------
 -- Backpropagation of single layer
 
--- general backprop function (using mini batch gradient descent) -> calling backprop for different layer types
-backpropMBGD :: Double -> Layer -> Matrix -> Matrix -> (Matrix, Layer)
-backpropMBGD learningRate layer rawInput dLoss_dOutput = select (layerType layer)
+-- general backprop function (using stochastic gradient descent) -> calling backprop for different layer types
+backpropSGD :: Double -> Layer -> Matrix -> Matrix -> (Matrix, Layer)
+backpropSGD learningRate layer rawInput dLoss_dOutput = select (layerType layer)
     where
         select InputLayer = (emptyMatrix, layer)
-        select DenseLayer = backpropDenseLayerMBGD learningRate layer rawInput dLoss_dOutput
+        select DenseLayer = backpropDenseLayerSGD learningRate layer rawInput dLoss_dOutput
 
--- Backpropagation of a single DenseLayer using mini batch gradient descent
+-- Backpropagation of a single DenseLayer using stochastic gradient descent (SGD)
 -- returns derived loss wrt. current output and the updated Layer (updated weights)
--- rawInput: is the output of previouse layer, which is basically
+-- rawInput: is the output of previous layer, which is basically
 --           the derivative of current layers input wrt. current layers weights
-backpropDenseLayerMBGD :: Double -> Layer -> Matrix -> Matrix -> (Matrix, Layer)
-backpropDenseLayerMBGD learningRate layer rawInput dLoss_dOutput = (dLoss_dPrevOutput, updatedLayer)
+backpropDenseLayerSGD :: Double -> Layer -> Matrix -> Matrix -> (Matrix, Layer)
+backpropDenseLayerSGD learningRate layer rawInput dLoss_dOutput = (dLoss_dPrevOutput, updatedLayer)
     where
-        batchSize = n rawInput
-
         layerSize = size layer
         activation = actFnc layer
         inputWeightsMat = inputWeights layer      -- (m_i-1 x m_i)
@@ -102,21 +100,19 @@ backpropDenseLayerMBGD learningRate layer rawInput dLoss_dOutput = (dLoss_dPrevO
         inputMat = input layer                    -- (n x m_i)
         outputMat = output layer                  -- (n x m_i)
 
-        -- (n x mi): elementWise on (n x mi)
+        -- (1 x mi): elementWise on (1 x mi)
         dOutput_dInput = applyToMatElementWise (fncDerive activation) inputMat
-        -- (n x mi): elementWise (n x mi) (n x mi)
+        -- (1 x mi): elementWise (1 x mi) (1 x mi)
         dLoss_dInput = matMulElementWise dLoss_dOutput dOutput_dInput
-        -- (n x mi-1): matMul (n x mi) (mi x mi-1)
+        -- (1 x mi-1): Matmul (elementWise (1 x mi) (1 x mi)) x (mi x mi-1)
         dLoss_dPrevOutput = matMul dLoss_dInput (transpose inputWeightsMat)
-        -- (mi-1 x mi): matMul (mi-1 x n) (n x mi)
+        -- (mi-1 x mi): matMul (mi-1 x 1) (1 x mi)
         dLoss_dInputWeights = matMul (transpose rawInput) dLoss_dInput
-        -- (1 x mi): matMul (1 x n) (n x mi)
-        dLoss_dBiasWeights = matMul (initOnes 1 batchSize) dLoss_dInput
 
-        updatedInputWeights = matAdd inputWeightsMat (matScalarMult (-learningRate / (fromIntegral batchSize)) dLoss_dInputWeights)
-        updatedBiasWeights = matAdd biasWeightsMat (matScalarMult (-learningRate / (fromIntegral batchSize)) dLoss_dBiasWeights)
+        updatedInputWeights = matAdd inputWeightsMat (matScalarMult (-learningRate) dLoss_dInputWeights)
+        updatedBiasWeights = matAdd biasWeightsMat (matScalarMult (-learningRate) dLoss_dInput)
 
-        updatedLayer = Layer DenseLayer batchSize activation updatedInputWeights updatedBiasWeights inputMat outputMat
+        updatedLayer = Layer DenseLayer layerSize activation updatedInputWeights updatedBiasWeights inputMat outputMat
 
 ------------------------------------------------------------------------------------
 -- Implementing print functions for different layers

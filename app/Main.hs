@@ -18,7 +18,7 @@ import Text.Printf
 printLoss :: [Double] -> IO ()
 printLoss [] = return ()
 printLoss (loss:lossList) = do
-    putStrLn $ show loss
+    print loss
     printLoss lossList
 
 ------------------------------------------------------------------------------------
@@ -26,20 +26,17 @@ printLoss (loss:lossList) = do
 seed :: Int
 seed = 128
 
-batchSize :: Int
-batchSize = 3
-
 trainingSteps :: Int
-trainingSteps = 100
+trainingSteps = 1
 
 learningRate :: Double
-learningRate = 0.0005
+learningRate = 0.01
 
 lossFunction :: LossFunc
 lossFunction = squaredError
 
-performanceMetrics :: Matrix -> Matrix -> Matrix
-performanceMetrics = meanAbsoluteError
+performanceMetric :: Matrix -> Matrix -> Matrix
+performanceMetric = meanAbsoluteError
 
 ------------------------------------------------------------------------------------
 -- self created test data with binary labels
@@ -55,20 +52,11 @@ featuresArray = [0.0, 0.0,
                  40.0, 20.0,
                  10.0, 20.0,
                  20.0, 20.0,
-                 100.0, 100.0,
                  150.0, 50.0,
-                 100.0, 100.0,
-                 200.0, 300.0,
-                 32.0, 70.0,
-                 81.0, 238.0,
-                 398.0, 238.0,
-                 342.0, 983.0,
-                 193.0, 383.0,
-                 823.0, 983.0,
-                 238.0, 745.0]
+                 32.0, 70.0]
 
 features = initMatrix (div (length featuresArray) numFeatures) numFeatures featuresArray
-labels = applyToMatRowWise (\ x y -> (2*x + (0.5*y))) features
+labels = applyToMatRowWise (\ x y -> 2.0*x + (0.5*y) + 10.0) features
 
 ------------------------------------------------------------------------------------
 
@@ -76,7 +64,7 @@ labels = applyToMatRowWise (\ x y -> (2*x + (0.5*y))) features
 main :: IO ()
 main = do
     -- declare model as pipeline
-    let dnn = initDNN 2 [(DenseLayer, 1, leakyRelu 0.3)] kaiminWeightInit seed
+    let dnn = initDNN 2 [(DenseLayer, 1, leakyRelu 0.2)] kaiminWeightInit seed
     let pipe = initPipeline Nothing dnn Nothing
 
     -- one hot encoding labels
@@ -84,13 +72,13 @@ main = do
 
     -- get output of untrained network
     let pipeOutput1 = createPipeOutput pipe features
-    let untrainedMAE = performanceMetrics labels pipeOutput1
+    let untrainedMAE = performanceMetric labels pipeOutput1
 
     -- print MAE before training
-    printf "untrained MAE: %.4f\n" ((array untrainedMAE)!!0)
+    printf "untrained MAE: %.4f\n" $ head $ array untrainedMAE
 
     -- train the Neural network
-    let res = trainPipe seed trainingSteps batchSize learningRate lossFunction pipe features labels
+    let res = trainPipe seed trainingSteps learningRate lossFunction pipe features labels
     let lossHistory = fst res
     let updatedPipe = snd res
 
@@ -99,10 +87,10 @@ main = do
 
     -- get output of trained network
     let pipeOutput2 = createPipeOutput updatedPipe features
-    let trainedMAE = performanceMetrics labels pipeOutput2
+    let trainedMAE = performanceMetric labels pipeOutput2
 
     -- print MAE after training
-    printf "trained MAE: %.4f\n" ((array trainedMAE)!!0)
+    printf "trained MAE: %.4f\n" $ head $ array trainedMAE
     
     -- print trained weights
     let updatedDNN = getDNN updatedPipe
@@ -114,8 +102,8 @@ main = do
     printf "Bias:\n"
     printMat trainedBias
 
-    let newObservation = initMatrix 1 2 [-3, 7.0]
+    let newObservation = initMatrix 1 2 [3.0, 7.0]
     let newOutput = createPipeOutput updatedPipe newObservation
 
-    printf "output of input observation [-3, 7] : %.4f\n" ((array newOutput)!!0)
+    printf "output of input observation [3, 7] : %.4f\n" $ head $ array newOutput
 ------------------------------------------------------------------------------------
