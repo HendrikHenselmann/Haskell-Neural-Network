@@ -27,7 +27,7 @@ seed :: Int
 seed = 128
 
 trainingSteps :: Int
-trainingSteps = 1
+trainingSteps = 3000
 
 learningRate :: Double
 learningRate = 0.01
@@ -48,15 +48,17 @@ featuresArray = [0.0, 0.0,
                  1.0, 0.0,
                  0.0, 1.0,
                  1.0, 1.0,
-                 3.0, 10.0,
-                 40.0, 20.0,
-                 10.0, 20.0,
-                 20.0, 20.0,
-                 150.0, 50.0,
-                 32.0, 70.0]
+                 3.0, 2.0,
+                 0.0, 4.0,
+                 2.0, 2.0,
+                 4.5, 2.5,
+                 2.3, 5.6]
+
+trueFunc :: Double -> Double -> Double
+trueFunc x y = 2*x + 0.5*y + 10
 
 features = initMatrix (div (length featuresArray) numFeatures) numFeatures featuresArray
-labels = applyToMatRowWise (\ x y -> 2.0*x + (0.5*y) + 10.0) features
+labels = applyToMatRowWise trueFunc features
 
 ------------------------------------------------------------------------------------
 
@@ -64,11 +66,8 @@ labels = applyToMatRowWise (\ x y -> 2.0*x + (0.5*y) + 10.0) features
 main :: IO ()
 main = do
     -- declare model as pipeline
-    let dnn = initDNN 2 [(DenseLayer, 1, leakyRelu 0.2)] kaiminWeightInit seed
+    let dnn = initDNN 2 [(DenseLayer, 1, leakyRelu 0.3)] kaiminWeightInit seed
     let pipe = initPipeline Nothing dnn Nothing
-
-    -- one hot encoding labels
-    -- let oneHotEncodedLabels = oneHotEncoding labels 1
 
     -- get output of untrained network
     let pipeOutput1 = createPipeOutput pipe features
@@ -102,8 +101,10 @@ main = do
     printf "Bias:\n"
     printMat trainedBias
 
-    let newObservation = initMatrix 1 2 [3.0, 7.0]
+    let x = 1.0
+    let y = 0.0
+    let newObservation = initMatrix 1 2 [x, y]
     let newOutput = createPipeOutput updatedPipe newObservation
 
-    printf "output of input observation [3, 7] : %.4f\n" $ head $ array newOutput
+    printf "output of input observation [%.0f, %.0f] (desired is %.2f): %.2f\n" x y (trueFunc x y) $ head $ array newOutput
 ------------------------------------------------------------------------------------
