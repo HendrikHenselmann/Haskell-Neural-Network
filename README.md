@@ -6,7 +6,7 @@ You need the Haskell tool **stack** to setup, build and execute this project.
 Execute the following steps:
 <ol>
 <li> Download this project folder from github.</li>
-<li> Open the command prompt and navigate into the downloaded project directory.</li>
+<li> Open the terminal and navigate into the downloaded project directory.</li>
 <li> Use the following commands to setup and build the project using <strong>stack</strong>:
  
          stack setup
