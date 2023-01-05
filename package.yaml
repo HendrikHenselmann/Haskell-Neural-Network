@@ -3,7 +3,7 @@ version:             0.1.0.0
 github:              "Hendrik128/Haskell-Neural-Network"
 license:             BSD3
 author:              "Hendrik Henselmann"
-maintainer:          "hendrikh@freenet.com"
+maintainer:          ""
 copyright:           "2021 Hendrik Henselmann"
 
 extra-source-files:
