@@ -27,10 +27,10 @@ seed :: Int
 seed = 128
 
 trainingSteps :: Int
-trainingSteps = 3000
+trainingSteps = 10
 
 learningRate :: Double
-learningRate = 0.01
+learningRate = 0.001
 
 lossFunction :: LossFunc
 lossFunction = squaredError
@@ -52,7 +52,8 @@ featuresArray = [0.0, 0.0,
                  0.0, 4.0,
                  2.0, 2.0,
                  4.5, 2.5,
-                 2.3, 5.6]
+                 2.3, 5.6,
+                 20, 60]
 
 trueFunc :: Double -> Double -> Double
 trueFunc x y = 2*x + 0.5*y + 10
@@ -71,10 +72,10 @@ main = do
 
     -- get output of untrained network
     let pipeOutput1 = createPipeOutput pipe features
-    let untrainedMSE = performanceMetric labels pipeOutput1
+    let untrainedMAE = performanceMetric labels pipeOutput1
 
-    -- print MSE before training
-    printf "\n\nUntrained MSE: %.4f\n" $ head $ array untrainedMSE
+    -- print MAE before training
+    printf "\n\nUntrained MAE: %.4f\n" $ head $ array untrainedMAE
 
     -- train the Neural network
     let res = trainPipe seed trainingSteps learningRate lossFunction pipe features labels
@@ -82,14 +83,14 @@ main = do
     let updatedPipe = snd res
 
     -- print loss history
-    -- printLoss $ array lossHistory
+    printLoss $ array lossHistory
 
     -- get output of trained network
     let pipeOutput2 = createPipeOutput updatedPipe features
-    let trainedMSE = performanceMetric labels pipeOutput2
+    let trainedMAE = performanceMetric labels pipeOutput2
 
-    -- print MSE after training
-    printf "trained MSE: %.4f\n" $ head $ array trainedMSE
+    -- print MAE after training
+    printf "trained MAE: %.4f\n" $ head $ array trainedMAE
     
     -- print trained weights
     let updatedDNN = getDNN updatedPipe

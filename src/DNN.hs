@@ -366,7 +366,7 @@ parseWeightMatrixArray str rows cols i j acc
             lastDouble = fst res
             remainingString = snd res
             in parseWeightMatrixArray remainingString rows cols (i+1) 0 (lastDouble:acc)
-    | otherwise = parseWeightMatrixArray remainingString rows cols i (j+1) (nextDouble:acc)
+    | otherwise = parseWeightMatrixArray remainingString rows cols i (j+1) (nextDouble:acc)
         where
             res = parseNextDouble str ' '
             nextDouble = fst res

@@ -59,13 +59,13 @@ learnAdditionTest = TestCase (do
                                    2.0, 4.0,
                                    7.0, 3.0,
                                    3.0, 10.0,
-                                   2.0, 5.0]
+                                   40.0, 20.0]
     let desiredOutput = initMatrix 6 1 [0.0,
                                         1.0,
                                         6.0,
                                         10.0,
                                         13.0,
-                                        7.0]
+                                        60.0]
     let desiredInputWeightsAfterTraining = initMatrix 2 1 [1.0, 1.0]
     let desiredBiasWeightsAfterTraining = initMatrix 1 1 [0.0]
 
