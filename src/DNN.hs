@@ -30,7 +30,7 @@ import Control.Monad
 ------------------------------------------------------------------------------------
 -- Neural Network consisting of Layers
 
-data DNN = DNN {
+newtype DNN = DNN {
     layers :: [Layer]
 }
 
@@ -44,7 +44,7 @@ emptyDNN = DNN []
 -- Initialize DNN according to given input layer size (inSize), hidden layer sizes, types and activation functions
 initDNN :: Int -> [(LayerType, Int, ActivationFunc)] -> WeightInit -> Int -> DNN
 initDNN inSize layerSpecifications weightInit seed
-    | ((inSize == 0) && (null layerSpecifications)) = emptyDNN
+    | (inSize == 0) && null layerSpecifications = emptyDNN
     | otherwise = aux ((InputLayer, inSize, identity):layerSpecifications) emptyDNN
     where
         aux :: [(LayerType, Int, ActivationFunc)] -> DNN -> DNN
@@ -55,13 +55,13 @@ initDNN inSize layerSpecifications weightInit seed
 -- adding DenseLayer of m_i hidden nodes to DNN
 addDenseLayer :: DNN -> Int -> ActivationFunc -> WeightInit -> Int -> DNN
 addDenseLayer dnn m_i actFnc weightInit seed
-    | (null (layers dnn)) = emptyDNN
-    | otherwise = DNN ((layers dnn) ++ [newLayer])
+    | null (layers dnn) = emptyDNN
+    | otherwise = DNN (layers dnn ++ [newLayer])
     where
         previousLayer = last $ layers dnn
         prevLayerSize = size previousLayer
-        inputWeightsMatrix = (inputWeightInit weightInit) seed prevLayerSize m_i
-        biasWeightMatrix = (biasWeightInit weightInit) seed m_i
+        inputWeightsMatrix = inputWeightInit weightInit seed prevLayerSize m_i
+        biasWeightMatrix = biasWeightInit weightInit seed m_i
         newLayer = Layer DenseLayer m_i actFnc inputWeightsMatrix biasWeightMatrix emptyMatrix emptyMatrix  -- emptyMatrix are placeholders
 
 -- adding Input Layer of m_i hidden nodes to DNN
@@ -75,13 +75,13 @@ addInputLayer dnn m_i = DNN [Layer InputLayer m_i identity emptyMatrix emptyMatr
 -- returning the updatedDNN with actual outputs as last layers outputs
 evaluate :: DNN -> Matrix -> DNN
 evaluate dnn input
-    | (null (layers dnn)) = emptyDNN
-    | (null (array input)) = emptyDNN
+    | null (layers dnn) = emptyDNN
+    | null (array input) = emptyDNN
     | otherwise = DNN (evalAux (layers dnn) input)
 
 evalAux :: [Layer] -> Matrix -> [Layer]
 evalAux [] _ = []
-evalAux (layer:layers) input = updatedLayer : (evalAux layers newInput)
+evalAux (layer:layers) input = updatedLayer : evalAux layers newInput
     where
         updatedLayer = feedForward layer input
         newInput = output updatedLayer
@@ -94,7 +94,7 @@ getResult dnn = output (last (layers dnn))
 -- Note: This doesn't change the given DNNs input / output !!!
 createOutput :: DNN -> Matrix -> Matrix
 createOutput dnn input
-    | (null (layers dnn)) = emptyMatrix
+    | null (layers dnn) = emptyMatrix
     | otherwise = output
     where
         updatedDnn = evaluate dnn input
@@ -108,10 +108,10 @@ createOutput dnn input
 -- this function is basically just for error handling and (re-)structuring input and output
 train :: Int -> Int -> Double -> LossFunc -> DNN -> Matrix -> Matrix -> (Matrix, DNN)
 train seed trainingSteps learningRate lossFunc dnn inputMat desiredOutput
-    | (null (layers dnn)) = (emptyMatrix, emptyDNN)
-    | (matsAreEqual inputMat emptyMatrix) = (emptyMatrix, emptyDNN)
-    | (matsAreEqual desiredOutput emptyMatrix) = (emptyMatrix, emptyDNN)
-    | (trainingSteps == 0) = (emptyMatrix, dnn)
+    | null (layers dnn) = (emptyMatrix, emptyDNN)
+    | matsAreEqual inputMat emptyMatrix = (emptyMatrix, emptyDNN)
+    | matsAreEqual desiredOutput emptyMatrix = (emptyMatrix, emptyDNN)
+    | trainingSteps == 0 = (emptyMatrix, dnn)
     | otherwise = (lossMat, updatedDnn)
     where
         -- performing the training steps
@@ -120,15 +120,15 @@ train seed trainingSteps learningRate lossFunc dnn inputMat desiredOutput
         updatedDnn = snd lossAndDnn
         finalPrediction = createOutput updatedDnn inputMat
         -- calculate final loss
-        finalLoss = (function lossFunc) desiredOutput finalPrediction
-        reversedLossHistory = (head $ array finalLoss):(fst lossAndDnn)
+        finalLoss = function lossFunc desiredOutput finalPrediction
+        reversedLossHistory = head (array finalLoss):fst lossAndDnn
         lossHistory = reverse reversedLossHistory
         lossMat = Matrix 1 (trainingSteps+1) lossHistory
 
 -- the outer loop ("training steps"): randomly choosing an input/output sample, calculating error and updating Network accordingly (Backpropagation)
 trainAux1_ :: Int -> Int -> Double -> LossFunc -> DNN -> Matrix -> Matrix -> [Double] -> ([Double], DNN)
 trainAux1_ seed trainingSteps learningRate lossFunc dnn inputMat desiredOutput reversedLossHistory
-    | (trainingSteps == 0) = (reversedLossHistory, dnn)
+    | trainingSteps == 0 = (reversedLossHistory, dnn)
     | otherwise = trainAux1_ nextSeed (trainingSteps-1) learningRate lossFunc updatedDnn inputMat desiredOutput updatedReversedLossHistory
     where
         -- generate new seed so that a new sample is chosen in every iteration
@@ -143,14 +143,14 @@ trainAux1_ seed trainingSteps learningRate lossFunc dnn inputMat desiredOutput r
         dnnAfterFeedForward = evaluate dnn randomInputRow
         dnnPrediction = getResult dnnAfterFeedForward
         -- calc loss
-        loss = (function lossFunc) randomDesiredOutputRow dnnPrediction
+        loss = function lossFunc randomDesiredOutputRow dnnPrediction
         -- calc loss derivative
-        dLoss_dPrevOutput = (derivative lossFunc) randomDesiredOutputRow dnnPrediction
+        dLoss_dPrevOutput = derivative lossFunc randomDesiredOutputRow dnnPrediction
         -- backprop
         reversedLayers = reverse $ layers dnnAfterFeedForward
         updatedReversedLayers = trainAux2_ learningRate reversedLayers dLoss_dPrevOutput
         updatedDnn = DNN (reverse updatedReversedLayers)
-        updatedReversedLossHistory = (head $ array loss):reversedLossHistory
+        updatedReversedLossHistory = head (array loss):reversedLossHistory
 
 -- the inner loop: backpropagating error through the whole network / all layers
 trainAux2_ :: Double -> [Layer] -> Matrix -> [Layer]
@@ -169,7 +169,7 @@ trainAux2_ _ (inputLayer:emptyList) _ = [inputLayer]
 -- Storing the dnn parameters in a file
 storeDNN :: DNN -> FilePath -> Bool -> IO ()
 storeDNN dnn fileName overwriteFile = do
-    if (overwriteFile)
+    if overwriteFile
         then writeFile fileName ""
         else appendFile fileName ""
     storeAux (layers dnn) fileName
@@ -206,12 +206,12 @@ storeWeightInfo :: FilePath -> Layer -> IO ()
 storeWeightInfo fileName layer = do
     -- store input weights
     let inputWeightsMat = inputWeights layer
-    if (matsAreEqual inputWeightsMat emptyMatrix)
+    if matsAreEqual inputWeightsMat emptyMatrix
         then appendFile fileName "\n0 "
         else storeMat fileName inputWeightsMat
     -- store bias weights
     let biasWeightMat = biasWeights layer
-    if (matsAreEqual biasWeightMat emptyMatrix)
+    if matsAreEqual biasWeightMat emptyMatrix
         then appendFile fileName "\n0 \n"
         else do
             storeMat fileName biasWeightMat
@@ -227,16 +227,16 @@ storeMat fileName mat = do
     appendFile fileName (show $ m mat)
     appendFile fileName "\n"
     -- append values of matrix array in following n lines
-    when (not (matsAreEqual mat emptyMatrix)) (storeArray fileName (m mat) 0 (array mat))
+    unless (matsAreEqual mat emptyMatrix) (storeArray fileName (m mat) 0 (array mat))
 
 -- convert Matrix array to string
 storeArray :: FilePath -> Int -> Int -> [Double] -> IO ()
 storeArray fileName _ _ [] = return ()
 storeArray fileName cols j (x:xs)
-    | (cols == j) = do
+    | cols == j = do
         appendFile fileName "\n"
         storeArray fileName cols 0 (x:xs)
-    | (j == 0) =  do
+    | j == 0 =  do
         appendFile fileName (show x)
         storeArray fileName cols (j+1) xs
     | otherwise = do
@@ -259,7 +259,7 @@ dnnFromString_ dnnString = DNN (parseNextLayer dnnString)
 -- parsing layer after layer
 parseNextLayer :: String -> [Layer]
 parseNextLayer [] = []
-parseNextLayer dnnString = layer : (parseNextLayer remainingString)
+parseNextLayer dnnString = layer : parseNextLayer remainingString
     where
         -- skipping seperators
         afterSkippedSeperators = skipSeperators dnnString
@@ -291,16 +291,16 @@ parseNextLayer dnnString = layer : (parseNextLayer remainingString)
 skipSeperators :: String -> String
 skipSeperators [] = []
 skipSeperators (c:str)
-    | (c == '-') = skipSeperators str
-    | (c == '\n') = str
-    | otherwise = (c:str)  -- should not happen!
+    | c == '-' = skipSeperators str
+    | c == '\n' = str
+    | otherwise = c:str  -- should not happen!
 
 -- skipping newLine char if thats the next char
 skipNewline :: String -> String
 skipNewline [] = []
 skipNewline (c:str)
-    | (c == '\n') = str
-    | otherwise = (c:str)  -- should only happen at EOF
+    | c == '\n' = str
+    | otherwise = c:str  -- should only happen at EOF
 
 -- parsing layer type
 parseLayerType :: String -> (LayerType, String)
@@ -330,10 +330,10 @@ parseLayerActivation str = (parsedActivation, remainingString)
         -- parsing params according to the function
         numParams = getNumParams parsedActivationNum
         afterParsedParams
-            | (numParams > 0) = parseNextCoupleDouble afterParsedActivationNum numParams
+            | numParams > 0 = parseNextCoupleDouble afterParsedActivationNum numParams
             | otherwise = ([], skipNewline afterParsedActivationNum)
         parsedActivation
-            | (numParams > 0) = decodeActivation parsedActivationNum (Just $ fst afterParsedParams)
+            | numParams > 0 = decodeActivation parsedActivationNum (Just $ fst afterParsedParams)
             | otherwise = decodeActivation parsedActivationNum Nothing
         remainingString = snd afterParsedParams
 
@@ -350,21 +350,22 @@ parseWeightMatrix str = (mat, remainingString)
         -- parsing values (Doubles) of matrix array
         afterParsedMatrixArray = parseWeightMatrixArray (snd afterParsedCols) rows cols 0 0 []
         mat
-            | (rows == 0) = emptyMatrix
+            | rows == 0 = emptyMatrix
             | otherwise = Matrix rows cols (fst afterParsedMatrixArray)
 
         remainingString
-            | (rows == 0) = skipNewline (snd afterParsedRows)
+            | rows == 0 = skipNewline (snd afterParsedRows)
             | otherwise = snd afterParsedMatrixArray
 
 -- parsing matrix array: (rows * cols) Doubles
 parseWeightMatrixArray :: String -> Int -> Int -> Int -> Int -> [Double] -> ([Double], String)
 parseWeightMatrixArray str rows cols i j acc
-    | (i == rows) = (reverse acc, str)
-    | (j == (cols-1)) = let res = parseNextDouble str '\n'
-                            lastDouble = fst res
-                            remainingString = snd res
-                        in parseWeightMatrixArray remainingString rows cols (i+1) 0 (lastDouble:acc)
+    | i == rows = (reverse acc, str)
+    | j == (cols-1) =
+        let res = parseNextDouble str '\n'
+            lastDouble = fst res
+            remainingString = snd res
+            in parseWeightMatrixArray remainingString rows cols (i+1) 0 (lastDouble:acc)
     | otherwise = parseWeightMatrixArray remainingString rows cols i (j+1) (nextDouble:acc)
         where
             res = parseNextDouble str ' '
@@ -376,25 +377,25 @@ parseNextDouble :: String -> Char -> (Double, String)
 parseNextDouble [] _ = (0.0, [])  -- sould not happen!
 parseNextDouble str stopChar = (parsedDouble, remainingString)
     where
-        res = parseNextDouble_Aux str stopChar []
+        res = parseNextDoubleAux str stopChar []
         parsedDouble = fst res
         remainingString = snd res
 
-parseNextDouble_Aux :: String -> Char -> String -> (Double, String)
-parseNextDouble_Aux [] _ buffer = ( (read $ (reverse buffer) :: Double), [] )
-parseNextDouble_Aux (c:str) stopChar buffer
-    | (c == stopChar) = ( (read $ (reverse buffer) :: Double), str )
-    | otherwise = parseNextDouble_Aux str stopChar (c:buffer)
+parseNextDoubleAux :: String -> Char -> String -> (Double, String)
+parseNextDoubleAux [] _ buffer = ( read $ reverse buffer :: Double, [] )
+parseNextDoubleAux (c:str) stopChar buffer
+    | c == stopChar = ( read $ reverse buffer :: Double, str )
+    | otherwise = parseNextDoubleAux str stopChar (c:buffer)
 
 -- parsing next x Doubles seperated by space (' ') and the next '\n' if exists
 parseNextCoupleDouble :: String -> Int -> ([Double], String)
-parseNextCoupleDouble str x = parseNextCoupleDouble_Aux str x []
+parseNextCoupleDouble str x = parseNextCoupleDoubleAux str x []
 
-parseNextCoupleDouble_Aux :: String -> Int -> [Double] -> ([Double], String)
-parseNextCoupleDouble_Aux [] _ _ = ([], [])  -- sould not happen!
-parseNextCoupleDouble_Aux str x acc
-    | (x == 0) = (reverse acc, str)
-    | otherwise = parseNextCoupleDouble_Aux remainingString (x-1) (nextDouble:acc)
+parseNextCoupleDoubleAux :: String -> Int -> [Double] -> ([Double], String)
+parseNextCoupleDoubleAux [] _ _ = ([], [])  -- sould not happen!
+parseNextCoupleDoubleAux str x acc
+    | x == 0 = (reverse acc, str)
+    | otherwise = parseNextCoupleDoubleAux remainingString (x-1) (nextDouble:acc)
         where
             res = parseNextDouble str ' '
             nextDouble = fst res
@@ -405,21 +406,21 @@ parseNextInt_ :: String -> Char -> (Int, String)
 parseNextInt_ [] _ = (0, [])  -- sould not happen!
 parseNextInt_ str stopChar = (parsedInt, remainingString)
     where
-        res = parseNextInt_Aux str stopChar []
+        res = parseNextIntAux str stopChar []
         parsedInt = fst res
         remainingString = snd res
 
-parseNextInt_Aux :: String -> Char -> String -> (Int, String)
-parseNextInt_Aux [] _ buffer = ( (read $ (reverse buffer) :: Int), [] )
-parseNextInt_Aux (c:str) stopChar buffer
-    | (c == stopChar) = ( (read $ (reverse buffer) :: Int), str )
-    | otherwise = parseNextInt_Aux str stopChar (c:buffer)
+parseNextIntAux :: String -> Char -> String -> (Int, String)
+parseNextIntAux [] _ buffer = ( read $ reverse buffer :: Int, [] )
+parseNextIntAux (c:str) stopChar buffer
+    | c == stopChar = (read $ reverse buffer :: Int, str )
+    | otherwise = parseNextIntAux str stopChar (c:buffer)
 
 ------------------------------------------------------------------------------------
 -- Implementing print function for DNN
 printDNNInfo :: DNN -> IO ()
 printDNNInfo dnn
-    | (null (layers dnn)) = printf "\n"
+    | null (layers dnn) = printf "\n"
     | otherwise = do
         printf "\nDeep Neural Network\t-\tInformation\n"
         printf "================================================\n"

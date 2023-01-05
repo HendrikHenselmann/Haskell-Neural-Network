@@ -71,10 +71,10 @@ main = do
 
     -- get output of untrained network
     let pipeOutput1 = createPipeOutput pipe features
-    let untrainedMAE = performanceMetric labels pipeOutput1
+    let untrainedMSE = performanceMetric labels pipeOutput1
 
-    -- print MAE before training
-    printf "untrained MAE: %.4f\n" $ head $ array untrainedMAE
+    -- print MSE before training
+    printf "\n\nUntrained MSE: %.4f\n" $ head $ array untrainedMSE
 
     -- train the Neural network
     let res = trainPipe seed trainingSteps learningRate lossFunction pipe features labels
@@ -86,17 +86,17 @@ main = do
 
     -- get output of trained network
     let pipeOutput2 = createPipeOutput updatedPipe features
-    let trainedMAE = performanceMetric labels pipeOutput2
+    let trainedMSE = performanceMetric labels pipeOutput2
 
-    -- print MAE after training
-    printf "trained MAE: %.4f\n" $ head $ array trainedMAE
+    -- print MSE after training
+    printf "trained MSE: %.4f\n" $ head $ array trainedMSE
     
     -- print trained weights
     let updatedDNN = getDNN updatedPipe
     let trainedWeights = inputWeights $ last $ layers updatedDNN
     let trainedBias = biasWeights $ last $ layers updatedDNN
 
-    printf "Input weights:\n"
+    printf "\nInput weights:\n"
     printMat trainedWeights
     printf "Bias:\n"
     printMat trainedBias
@@ -106,5 +106,5 @@ main = do
     let newObservation = initMatrix 1 2 [x, y]
     let newOutput = createPipeOutput updatedPipe newObservation
 
-    printf "output of input observation [%.0f, %.0f] (desired is %.2f): %.2f\n" x y (trueFunc x y) $ head $ array newOutput
+    printf "After training: output of input [%.0f, %.0f]: %.2f (desired is %.2f)\n" x y (trueFunc x y) $ head $ array newOutput
 ------------------------------------------------------------------------------------

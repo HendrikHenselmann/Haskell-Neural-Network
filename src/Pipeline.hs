@@ -44,7 +44,7 @@ getOutScaler (_, _, outScaler) = outScaler
 -- Initialization of a Pipeline
 initPipeline :: Maybe InputScaler -> DNN -> Maybe OutputScaler -> Pipeline
 initPipeline inputScaler dnn outputScaler
-    | (null (layers dnn)) = emptyPipe
+    | null (layers dnn) = emptyPipe
     | otherwise = (inputScaler, dnn, outputScaler)
 
 emptyPipe :: Pipeline
@@ -57,7 +57,7 @@ emptyPipe = (Nothing, emptyDNN, Nothing)
 -- Note: This doesn't change the given DNNs input / output !!!
 createPipeOutput :: Pipeline -> Matrix -> Matrix
 createPipeOutput pipe input
-    | ( null $ layers $ getDNN pipe ) = emptyMatrix
+    | null $ layers $ getDNN pipe = emptyMatrix
     | otherwise = maybeScaledOutput
     where
         inScaler = getInScaler pipe
@@ -65,14 +65,14 @@ createPipeOutput pipe input
         dnn = getDNN pipe
 
         maybeScaledInput
-            | (isNothing inScaler) = input
+            | isNothing inScaler = input
             | otherwise = (scaleIn $ fromJust inScaler) input
 
         updatedDnn = evaluate dnn maybeScaledInput
         output = getResult updatedDnn
 
         maybeScaledOutput
-            | (isNothing outScaler) = output
+            | isNothing outScaler = output
             | otherwise = (scaleOut $ fromJust outScaler) output
 
 ------------------------------------------------------------------------------------
@@ -83,10 +83,10 @@ createPipeOutput pipe input
 -- this function is basically just for error handling and (re-)structuring input and output
 trainPipe :: Int -> Int -> Double -> LossFunc -> Pipeline -> Matrix -> Matrix -> (Matrix, Pipeline)
 trainPipe seed trainingSteps learningRate lossFunc pipe inputMat desiredOutput
-    | (null (layers dnn)) = (emptyMatrix, emptyPipe)
-    | (matsAreEqual inputMat emptyMatrix) = (emptyMatrix, emptyPipe)
-    | (matsAreEqual desiredOutput emptyMatrix) = (emptyMatrix, emptyPipe)
-    | (trainingSteps == 0) = (emptyMatrix, pipe)
+    | null (layers dnn) = (emptyMatrix, emptyPipe)
+    | matsAreEqual inputMat emptyMatrix = (emptyMatrix, emptyPipe)
+    | matsAreEqual desiredOutput emptyMatrix = (emptyMatrix, emptyPipe)
+    | trainingSteps == 0 = (emptyMatrix, pipe)
     | otherwise = (lossMat, updatedPipe)
     where
         -- extract objects of Pipeline
@@ -96,15 +96,15 @@ trainPipe seed trainingSteps learningRate lossFunc pipe inputMat desiredOutput
 
         -- scale input
         maybeScaledInputMat
-            | (isNothing inScaler) = inputMat
+            | isNothing inScaler = inputMat
             | otherwise = (scaleIn $ fromJust inScaler) inputMat
 
         -- change loss function according to output scaler
         -- has to be updated for every possible (scaler x loss) combination
         maybeLossFuncAfterScaling :: LossFunc
         maybeLossFuncAfterScaling
-            | (isNothing outScaler) = lossFunc
-            | (((outScalerName $ fromJust outScaler) == "softmax") && ((lossName lossFunc) == "crossEntropy")) = crossEntropyAfterSoftmax
+            | isNothing outScaler = lossFunc
+            | outScalerName (fromJust outScaler) == "softmax" && (lossName lossFunc == "crossEntropy") = crossEntropyAfterSoftmax
             | otherwise = lossFunc
 
         -- performing the training steps
@@ -115,9 +115,9 @@ trainPipe seed trainingSteps learningRate lossFunc pipe inputMat desiredOutput
         finalPrediction = createOutput updatedDnn maybeScaledInputMat
 
         -- calculate final loss
-        finalLoss = (function maybeLossFuncAfterScaling) desiredOutput finalPrediction
-        meanFinalLoss = (sum (array finalLoss)) / (fromIntegral (n maybeScaledInputMat))
-        reversedLossHistory = meanFinalLoss:(fst lossAndDnn)
+        finalLoss = function maybeLossFuncAfterScaling desiredOutput finalPrediction
+        meanFinalLoss = sum (array finalLoss) / fromIntegral (n maybeScaledInputMat)
+        reversedLossHistory = meanFinalLoss:fst lossAndDnn
         lossHistory = reverse reversedLossHistory
         lossMat = Matrix 1 (trainingSteps+1) lossHistory
 
@@ -168,7 +168,7 @@ pipeFromString pipeString = loadedPipe
 -- print Pipeline info
 printPipe :: Pipeline -> IO ()
 printPipe pipe
-    | (null dnnLayers) = print "\n"
+    | null dnnLayers = print "\n"
     | otherwise = do
         printf "\nDeep Neural Network\t-\tInformation\n"
         printf "================================================\n"
@@ -186,11 +186,11 @@ printPipe pipe
             dnnLayers = layers dnn
 
             inScaler
-                | (isNothing (getInScaler pipe)) = "Nothing"
+                | isNothing (getInScaler pipe) = "Nothing"
                 | otherwise = inScalerName $ fromJust $ getInScaler pipe
 
             outScaler
-                | (isNothing (getOutScaler pipe)) = "Nothing"
+                | isNothing (getOutScaler pipe) = "Nothing"
                 | otherwise = outScalerName $ fromJust $ getOutScaler pipe
 
             aux :: [Layer] -> Int -> IO ()

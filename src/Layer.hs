@@ -52,7 +52,7 @@ encodeLayerType DenseLayer = "2"
 
 decodeLayerType :: Int -> LayerType
 decodeLayerType layerId
-    | (layerId == 2) = DenseLayer
+    | layerId == 2 = DenseLayer
     | otherwise = InputLayer
 
 ------------------------------------------------------------------------------------
@@ -132,11 +132,11 @@ printDenseLayerInfo layer = printf "( Dense, %d, %s%s )\n" (size layer) (name (a
 
 convertActivationParamsToString :: Maybe [Double] -> String
 convertActivationParamsToString params
-    | (isNothing params) = ""
+    | isNothing params = ""
     | otherwise = aux (fromJust params)
     where
         aux :: [Double] -> String
         aux [] = ""
-        aux (param:params) = " " ++ (show param) ++ (aux params)
+        aux (param:params) = " " ++ show param ++ aux params
 
 ------------------------------------------------------------------------------------

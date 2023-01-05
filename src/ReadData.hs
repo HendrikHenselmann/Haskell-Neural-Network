@@ -23,7 +23,7 @@ import System.IO( isEOF )
 cutFirstLine :: String -> String
 cutFirstLine [] = []
 cutFirstLine (c:str)
-    | (c == '\n') = str
+    | c == '\n' = str
     | otherwise = cutFirstLine str
 
 ------------------------------------------------------------------------------------
@@ -64,8 +64,7 @@ readTest :: IO (Matrix, Matrix)
 readTest = do
     let dataSize = 4
     let numFeatures = 3
-    dataArrays <- readAndParseCSV_MNIST dataSize numFeatures "./data/Test/test.csv"
-    return dataArrays
+    readAndParseCSV_MNIST dataSize numFeatures "./data/Test/test.csv"
 
 ------------------------------------------------------------------------------------
 -- Parsing the MNIST train and test sets
@@ -74,28 +73,24 @@ readMNIST_testSet50 :: IO (Matrix, Matrix)
 readMNIST_testSet50 = do
     let dataSize = 50
     let numFeatures = 784
-    dataArrays <- readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_test50.csv"
-    return dataArrays
+    readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_test50.csv"
 
 readMNIST_testSet300 :: IO (Matrix, Matrix)
 readMNIST_testSet300 = do
     let dataSize = 300
     let numFeatures = 784
-    dataArrays <- readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_test300.csv"
-    return dataArrays
+    readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_test300.csv"
 
 readMNIST_testSet :: IO (Matrix, Matrix)
 readMNIST_testSet = do
     let dataSize = 10000
     let numFeatures = 784
-    dataArrays <- readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_test.csv"
-    return dataArrays
+    readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_test.csv"
 
 readMNIST_trainSet :: IO (Matrix, Matrix)
 readMNIST_trainSet = do
     let dataSize = 50000
     let numFeatures = 28*28
-    dataArrays <- readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_train.csv"
-    return dataArrays
+    readAndParseCSV_MNIST dataSize numFeatures "./data/MNIST/mnist_train.csv"
 
 ------------------------------------------------------------------------------------

@@ -23,18 +23,18 @@ squaredError = LossFunc "squaredLoss" squaredErrorFnc squaredErrorDerivative
 
 squaredErrorFnc :: Matrix -> Matrix -> Matrix
 squaredErrorFnc actual predicted
-    | (matsAreEqual actual emptyMatrix) = emptyMatrix
-    | (matsAreEqual predicted emptyMatrix) = emptyMatrix
+    | matsAreEqual actual emptyMatrix = emptyMatrix
+    | matsAreEqual predicted emptyMatrix = emptyMatrix
     | otherwise = squaredErr
     where
-        elementWiseSquareError = applyToTwoMatsElementWise (\ a p ->((a-p)**2)) actual predicted
+        elementWiseSquareError = applyToTwoMatsElementWise (\ a p ->(a-p)**2) actual predicted
         rowWiseAddition = applyToMatRowWise (+) elementWiseSquareError
         squaredErr = applyToMatElementWise (0.5 *) rowWiseAddition
 
 squaredErrorDerivative :: Matrix -> Matrix -> Matrix
 squaredErrorDerivative actual predicted
-    | (matsAreEqual actual emptyMatrix) = emptyMatrix
-    | (matsAreEqual predicted emptyMatrix) = emptyMatrix
+    | matsAreEqual actual emptyMatrix = emptyMatrix
+    | matsAreEqual predicted emptyMatrix = emptyMatrix
     | otherwise = squaredErrDeriv
     where
         squaredErrDeriv = applyToTwoMatsElementWise (-) predicted actual
@@ -47,21 +47,21 @@ crossEntropy = LossFunc "crossEntropy" crossEntropyFnc crossEntropyDerivative
 
 crossEntropyFnc :: Matrix -> Matrix -> Matrix
 crossEntropyFnc actual predicted
-    | (matsAreEqual actual emptyMatrix) = emptyMatrix
-    | (matsAreEqual predicted emptyMatrix) = emptyMatrix
+    | matsAreEqual actual emptyMatrix = emptyMatrix
+    | matsAreEqual predicted emptyMatrix = emptyMatrix
     | otherwise = crossEntropyErr
     where
         logPredicted = applyToMatElementWise log predicted
-        minusActualTimesLogPredicted = applyToTwoMatsElementWise (\ a p -> ((-a)*p)) actual predicted
+        minusActualTimesLogPredicted = applyToTwoMatsElementWise (\ a p -> (-a)*p) actual predicted
         crossEntropyErr = applyToMatRowWise (+) minusActualTimesLogPredicted
 
 crossEntropyDerivative :: Matrix -> Matrix -> Matrix
 crossEntropyDerivative actual predicted
-    | (matsAreEqual actual emptyMatrix) = emptyMatrix
-    | (matsAreEqual predicted emptyMatrix) = emptyMatrix
+    | matsAreEqual actual emptyMatrix = emptyMatrix
+    | matsAreEqual predicted emptyMatrix = emptyMatrix
     | otherwise = crossEntropyDeriv
     where
-        crossEntropyDeriv = applyToTwoMatsElementWise (\ a p -> ( (-1.0) * (a/p) )) actual predicted
+        crossEntropyDeriv = applyToTwoMatsElementWise (\ a p -> (-1.0) * (a/p) ) actual predicted
 
 ------------------------------------------------------------------------------------
 -- Combination of cross entropy and softmax scaler
@@ -71,8 +71,8 @@ crossEntropyAfterSoftmax = LossFunc "crossEntropy after softmax" crossEntropyAft
 
 crossEntropyAfterSoftmaxFunc :: Matrix -> Matrix -> Matrix
 crossEntropyAfterSoftmaxFunc actual predictedBeforeSoftmax
-    | (matsAreEqual actual emptyMatrix) = emptyMatrix
-    | (matsAreEqual predictedBeforeSoftmax emptyMatrix) = emptyMatrix
+    | matsAreEqual actual emptyMatrix = emptyMatrix
+    | matsAreEqual predictedBeforeSoftmax emptyMatrix = emptyMatrix
     | otherwise = res
     where
         -- get predictions (before softmax scaling) where actual is 1.0
@@ -81,7 +81,7 @@ crossEntropyAfterSoftmaxFunc actual predictedBeforeSoftmax
         aux [] _ = []
         aux _ [] = []
         aux (a:actuals) (p:predicteds)
-            | (a == 1.0) = p : rest
+            | a == 1.0 = p : rest
             | otherwise = rest
             where
                 rest = aux actuals predicteds
@@ -89,12 +89,12 @@ crossEntropyAfterSoftmaxFunc actual predictedBeforeSoftmax
         exps = applyToMatElementWise exp predictedBeforeSoftmax
         sumOfExps = applyToMatRowWise (+) exps
         logSumOfExps = applyToMatElementWise log sumOfExps
-        res = applyToTwoMatsElementWise (\ x y -> (y - x) ) predictedWhereActualIsOne logSumOfExps
+        res = applyToTwoMatsElementWise (flip (-))predictedWhereActualIsOne logSumOfExps
 
 crossEntropyAfterSoftmaxDeriv :: Matrix -> Matrix -> Matrix
 crossEntropyAfterSoftmaxDeriv actual predictedBeforeSoftmax
-    | (matsAreEqual actual emptyMatrix) = emptyMatrix
-    | (matsAreEqual predictedBeforeSoftmax emptyMatrix) = emptyMatrix
-    | otherwise = applyToTwoMatsElementWise (\ a p -> p - a) actual ((scaleOut softmax) predictedBeforeSoftmax)
+    | matsAreEqual actual emptyMatrix = emptyMatrix
+    | matsAreEqual predictedBeforeSoftmax emptyMatrix = emptyMatrix
+    | otherwise = applyToTwoMatsElementWise (flip (-)) actual (scaleOut softmax predictedBeforeSoftmax)
 
 ------------------------------------------------------------------------------------

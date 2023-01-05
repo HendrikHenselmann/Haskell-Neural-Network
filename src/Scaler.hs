@@ -44,8 +44,8 @@ data OutputScaler = OutputScaler {
 encodeInputScaler :: Maybe InputScaler -> String
 encodeInputScaler Nothing = "0"
 encodeInputScaler inScaler
-    | (scalerName == "normalization") = "1"
-    | (scalerName == "standardization") = "2"
+    | scalerName == "normalization" = "1"
+    | scalerName == "standardization" = "2"
     | otherwise = "0"
     where
         scalerName = inScalerName $ fromJust inScaler
@@ -53,8 +53,8 @@ encodeInputScaler inScaler
 decodeInputScaler :: Int -> Maybe InputScaler
 decodeInputScaler 0 = Nothing
 decodeInputScaler scalerId
-    | (scalerId == 1) = Just normalization
-    | (scalerId == 2) = Just standardization
+    | scalerId == 1 = Just normalization
+    | scalerId == 2 = Just standardization
     | otherwise = Nothing
 ------------------------------------------------------------------------------------
 -- encoding and decoding of Output Scaler (for load and store of Pipeline)
@@ -62,7 +62,7 @@ decodeInputScaler scalerId
 encodeOutputScaler :: Maybe OutputScaler -> String
 encodeOutputScaler Nothing = "0"
 encodeOutputScaler outScaler
-    | (scalerName == "softmax") = "1"
+    | scalerName == "softmax" = "1"
     | otherwise = "0"
     where
         scalerName = outScalerName $ fromJust outScaler
@@ -70,16 +70,16 @@ encodeOutputScaler outScaler
 decodeOutputScaler :: Int -> Maybe OutputScaler
 decodeOutputScaler 0 = Nothing
 decodeOutputScaler scalerId
-    | (scalerId == 1) = Just softmax
+    | scalerId == 1 = Just softmax
     | otherwise = Nothing
 
 ------------------------------------------------------------------------------------
 -- specify empty input and output scaler
 emptyInputScaler :: InputScaler
-emptyInputScaler = InputScaler "! Empty_Input_Scaler !" (\_ -> emptyMatrix)
+emptyInputScaler = InputScaler "! Empty_Input_Scaler !" (const emptyMatrix)
 
 emptyOutputScaler:: OutputScaler
-emptyOutputScaler = OutputScaler "! Empty_Output_Scaler !" (\_ -> emptyMatrix) (\_ _ -> emptyMatrix) (\_ -> emptyMatrix)
+emptyOutputScaler = OutputScaler "! Empty_Output_Scaler !" (const emptyMatrix) (\_ _ -> emptyMatrix) (const emptyMatrix)
 
 ------------------------------------------------------------------------------------
 -- Normalizing Input Scaler / MinMax Scaler -> input in range [0, 1]
@@ -87,23 +87,23 @@ normalization = InputScaler "normalization" normalizationScale
 
 normalizationScale :: Matrix -> Matrix
 normalizationScale inputMat
-    | (matsAreEqual inputMat emptyMatrix) = emptyMatrix
+    | matsAreEqual inputMat emptyMatrix = emptyMatrix
     | otherwise = applyToTwoMatsElementWise (/) xMinusMin maxMinusMinRepeated
     where
         maxArray = applyToMatColWise greaterArg inputMat
         minArray = applyToMatColWise smallerArg inputMat
-        xMinusMin = (matAdd inputMat (applyToMatElementWise (*(-1)) minArray))
+        xMinusMin = matAdd inputMat (applyToMatElementWise (*(-1)) minArray)
         maxMinusMin = applyToTwoMatsElementWise (-) maxArray minArray
         maxMinusMinRepeated = Matrix (n inputMat) (m inputMat) (repeatDoubleList (n inputMat) (array maxMinusMin))
 
 greaterArg :: Double -> Double -> Double
 greaterArg x y
-    | (x > y) = x
+    | x > y = x
     | otherwise = y
 
 smallerArg :: Double -> Double -> Double
 smallerArg x y
-    | (x < y) = x
+    | x < y = x
     | otherwise = y
 
 ------------------------------------------------------------------------------------
@@ -113,16 +113,16 @@ standardization = InputScaler "standardization" standardizationScale
 
 standardizationScale :: Matrix -> Matrix
 standardizationScale inputMat
-    | (matsAreEqual inputMat emptyMatrix) = emptyMatrix
+    | matsAreEqual inputMat emptyMatrix = emptyMatrix
     | otherwise = applyToTwoMatsElementWise (/) (matAdd inputMat minusMeanArray) repeatedStdDeviation
     where
         sumArray = applyToMatColWise (+) inputMat
-        meanArray = applyToMatElementWise (/ (fromIntegral (n inputMat))) sumArray
+        meanArray = applyToMatElementWise (/ fromIntegral (n inputMat)) sumArray
         minusMeanArray = applyToMatElementWise (*(-1.0)) meanArray
         xMinusMean = matAdd inputMat minusMeanArray
         squaredXMinusMean = applyToMatElementWise (**2.0) xMinusMean
         sumSquaredXMinusMean = applyToMatColWise (+) squaredXMinusMean
-        stdDeviation = applyToMatElementWise (\x -> sqrt(x / (fromIntegral (n inputMat)))) sumSquaredXMinusMean
+        stdDeviation = applyToMatElementWise (\x -> sqrt(x / fromIntegral (n inputMat))) sumSquaredXMinusMean
         repeatedStdDeviation = Matrix (n inputMat) (m inputMat) (repeatDoubleList (n inputMat) (array stdDeviation))
 
 ------------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ repeatDoubleList i original = aux i original
         aux :: Int -> [Double] -> [Double]
         aux 0 _ = []
         aux i [] = aux (i-1) original
-        aux i (x:xs) = x:(aux i xs)
+        aux i (x:xs) = x : aux i xs
 
 ------------------------------------------------------------------------------------
 -- Softmax Output Scaler
@@ -143,7 +143,7 @@ softmax = OutputScaler "softmax" softmaxFunc softmaxDeriv applySoftmaxAndExtract
 softmaxFunc :: Matrix -> Matrix
 softmaxFunc rawInputs = applyToTwoMatsElementWise (/) elementWiseExp repeatedRowWiseSum
     where
-        elementWiseExp = applyToMatElementWise (\x -> exp(x)) rawInputs
+        elementWiseExp = applyToMatElementWise exp rawInputs
         rowWiseSum = applyToMatRowWise (+) elementWiseExp
         repeatedRowWiseSum = Matrix (n rawInputs) (m rawInputs) (repeatDoubleListElements (m rawInputs) (array rowWiseSum))
 
@@ -153,29 +153,29 @@ softmaxDeriv actual predictionsBeforeSoftmax = softmaxDerivation
         -- scale predictions
         softmaxScaledPredictions = softmaxFunc predictionsBeforeSoftmax
         -- get prediction where actual is 1.0
-        predictionWhereActualIsOne = softmaxDeriv_Aux (array actual) (array softmaxScaledPredictions)
+        predictionWhereActualIsOne = softmaxDerivAux (array actual) (array softmaxScaledPredictions)
         -- calculate derivative
-        softmaxDerivationArray = softmaxDeriv_Aux2 (array actual) (array softmaxScaledPredictions) predictionWhereActualIsOne (m actual) 0
+        softmaxDerivationArray = softmaxDerivAux2 (array actual) (array softmaxScaledPredictions) predictionWhereActualIsOne (m actual) 0
         softmaxDerivation = Matrix (n actual) (m actual) softmaxDerivationArray
 
-softmaxDeriv_Aux :: [Double] -> [Double] -> [Double]
-softmaxDeriv_Aux [] _ = []
-softmaxDeriv_Aux _ [] = []
-softmaxDeriv_Aux (a:actuals) (p:predicteds)
-    | (a == 1.0) = p : rest
+softmaxDerivAux :: [Double] -> [Double] -> [Double]
+softmaxDerivAux [] _ = []
+softmaxDerivAux _ [] = []
+softmaxDerivAux (a:actuals) (p:predicteds)
+    | a == 1.0 = p : rest
     | otherwise = rest
     where
-        rest = softmaxDeriv_Aux actuals predicteds
+        rest = softmaxDerivAux actuals predicteds
 
-softmaxDeriv_Aux2 :: [Double] -> [Double] -> [Double] -> Int -> Int -> [Double]
-softmaxDeriv_Aux2 [] _ _ _ _ = []
-softmaxDeriv_Aux2 _ [] _ _ _ = []
-softmaxDeriv_Aux2 _ _ [] _ _ = []
-softmaxDeriv_Aux2 (a:actuals) (p:predictions) (pWhereActualIsOne:predictionsWhereActualIsOne) m j
-    | ((a == 1.0) && ((j+1) < m)) = (p*(1-p)) : (softmaxDeriv_Aux2 actuals predictions (pWhereActualIsOne:predictionsWhereActualIsOne) m (j+1))
-    | ((j+1) < m) = (-p * pWhereActualIsOne) : (softmaxDeriv_Aux2 actuals predictions (pWhereActualIsOne:predictionsWhereActualIsOne) m (j+1))
-    | (a == 1.0) = (p*(1-p)) : (softmaxDeriv_Aux2 actuals predictions predictionsWhereActualIsOne m 0)
-    | otherwise = (-p * pWhereActualIsOne) : (softmaxDeriv_Aux2 actuals predictions predictionsWhereActualIsOne m 0)
+softmaxDerivAux2 :: [Double] -> [Double] -> [Double] -> Int -> Int -> [Double]
+softmaxDerivAux2 [] _ _ _ _ = []
+softmaxDerivAux2 _ [] _ _ _ = []
+softmaxDerivAux2 _ _ [] _ _ = []
+softmaxDerivAux2 (a:actuals) (p:predictions) (pWhereActualIsOne:predictionsWhereActualIsOne) m j
+    | (a == 1.0) && ((j+1) < m) = (p*(1-p)) : softmaxDerivAux2 actuals predictions (pWhereActualIsOne:predictionsWhereActualIsOne) m (j+1)
+    | (j+1) < m = (-p * pWhereActualIsOne) : softmaxDerivAux2 actuals predictions (pWhereActualIsOne:predictionsWhereActualIsOne) m (j+1)
+    | a == 1.0 = (p*(1-p)) : softmaxDerivAux2 actuals predictions predictionsWhereActualIsOne m 0
+    | otherwise = (-p * pWhereActualIsOne) : softmaxDerivAux2 actuals predictions predictionsWhereActualIsOne m 0
 
 applySoftmaxAndExtractLabel :: Matrix -> Matrix 
 applySoftmaxAndExtractLabel rawInputs = predictionToLabel $ softmaxFunc rawInputs
@@ -188,6 +188,6 @@ repeatDoubleListElements m original = aux m original
         aux :: Int -> [Double] -> [Double]
         aux _ [] = []
         aux 0 (x:xs) = aux m xs
-        aux j (x:xs) = x:(aux (j-1) (x:xs))
+        aux j (x:xs) = x : aux (j-1) (x:xs)
 
 ------------------------------------------------------------------------------------
