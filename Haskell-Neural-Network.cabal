@@ -10,7 +10,6 @@ description:    Please see the README on GitHub at <https://github.com/Hendrik12
 homepage:       https://github.com/Hendrik128/Haskell-Neural-Network#readme
 bug-reports:    https://github.com/Hendrik128/Haskell-Neural-Network/issues
 author:         Hendrik Henselmann
-maintainer:     hendrikh@freenet.com
 copyright:      2021 Hendrik Henselmann
 license:        BSD3
 license-file:   LICENSE
