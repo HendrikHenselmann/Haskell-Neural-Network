@@ -5,7 +5,7 @@
 You need the Haskell tool **stack** to setup, build and execute this project.
 Execute the following steps:
 <ol>
-<li> Download this project folder from github.</li>
+<li> Download this project folder from GitHub.</li>
 <li> Open the terminal and navigate into the downloaded project directory.</li>
 <li> Use the following commands to setup and build the project using <strong>stack</strong>:
  
@@ -29,5 +29,5 @@ stack test
 <br/><br/>
 
 ## Important notes / Clean Code violations / gathered experience
-* The are no learning episodes. Backpropagation takes a random observation (or batch of observations) at every backpropagation iteration. It's not going through the whole dataset. I think that this is okay if the number of learning steps is high enough.
+* At every learning iteration a random observation (or batch of observations) is selected. There are no learning episodes, meaning that there is no mechanism that ensures that the whole dataset is considered at learning. I think that this is okay if the number of learning steps is high enough.
 * I've not implemented Exceptions. In the case of failure, e.g. unexpected / inconsistent input, failure indicating output / output datastructures will be propagated through. For example the emptyMatrix, emptyDNN, emptyPipe are structures indicating failure. This is certainly not good practice, since debugging gets very difficult.
