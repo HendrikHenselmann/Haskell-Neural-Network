@@ -1,5 +1,5 @@
 # Neural Network written in Haskell
- This is an implementation of a Neural Network written in Haskell. I wrote it solely to deepen my understanding of Neural Networks. It is not meant to be used for real world applications.
+ This is an implementation of a Neural Network Framework written in Haskell. I wrote it solely to deepen my understanding of Neural Networks. It is not meant to be used for real world applications.
 
 ## Setup
 You need the Haskell tool **stack** to setup, build and execute this project.
